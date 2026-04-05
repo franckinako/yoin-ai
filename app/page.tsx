@@ -26,6 +26,7 @@ export default function Home() {
   const [started, setStarted] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [restoreId, setRestoreId] = useState<string | null>(null);
+  const [authError, setAuthError] = useState("");
 
   // ページ読み込み時にlocalStorageから復元し、選択済みなら直接チャット画面へ
   useEffect(() => {
@@ -37,6 +38,15 @@ export default function Home() {
         setStarted(true);
       }
     } catch {}
+  }, []);
+
+  // URLハッシュのエラーを検出
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.includes("error=access_denied") && hash.includes("otp_expired")) {
+      setAuthError("メール確認リンクの有効期限が切れています。再度サインアップしてください。");
+      window.history.replaceState(null, "", window.location.pathname);
+    }
   }, []);
 
   function toggleService(service: string) {
@@ -108,6 +118,12 @@ export default function Home() {
           <AuthButton />
         </div>
       </header>
+
+      {authError && (
+        <div className="px-4 py-2 bg-red-500/10 border-b border-red-500/20 text-red-400 text-xs text-center">
+          {authError}
+        </div>
+      )}
 
       <AnimatePresence mode="wait">
         {!started ? (
