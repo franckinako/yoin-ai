@@ -93,7 +93,7 @@ export default function Home() {
       />
 
       {/* Main area */}
-      <div className="flex-1 flex flex-col min-h-0 min-w-0">
+      <div className="flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden">
         {/* Header */}
         <header className="border-b border-white/8 px-4 py-3 flex items-center gap-2 bg-[#0a0a0f] flex-shrink-0">
           {/* Mobile menu button */}
@@ -206,7 +206,7 @@ export default function Home() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="flex-1 flex flex-col min-h-0 px-3 sm:px-6 py-3 sm:py-4 max-w-3xl mx-auto w-full"
+              className="flex-1 flex flex-col min-h-0 overflow-hidden px-3 sm:px-6 py-3 sm:py-4 max-w-3xl mx-auto w-full"
             >
               <ChatInterface
                 preferences={preferences}
