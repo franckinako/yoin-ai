@@ -15,5 +15,6 @@ export async function GET(request: NextRequest) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
-  return NextResponse.redirect(`${origin}/`);
+  const redirectTo = token_hash ? `${origin}/auth/confirmed` : `${origin}/`;
+  return NextResponse.redirect(redirectTo);
 }
