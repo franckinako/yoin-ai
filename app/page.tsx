@@ -155,21 +155,21 @@ export default function Home() {
                   <p className="text-sm text-white/35">視聴できる映画を優先して推薦します</p>
                 </div>
 
-                <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {STREAMING_SERVICE_NAMES.map((service) => {
                     const active = preferences.streamingServices.includes(service);
                     return (
                       <button
                         key={service}
                         onClick={() => toggleService(service)}
-                        className={`px-4 py-2.5 rounded-lg text-sm text-left transition-all flex items-center gap-2.5 ${
+                        className={`px-4 py-3 rounded-xl border text-sm text-left transition-all flex items-center gap-2 ${
                           active
-                            ? "bg-white/10 text-white border border-white/20"
-                            : "text-white/50 hover:bg-white/5 hover:text-white/75 border border-transparent"
+                            ? "border-yellow-400/70 bg-yellow-400/15 text-white font-medium"
+                            : "border-white/15 text-white/50 hover:border-white/30 hover:text-white/70"
                         }`}
                       >
-                        <span className={`w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center text-xs transition-all ${
-                          active ? "border-white/60 bg-white text-black" : "border-white/20"
+                        <span className={`w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center text-xs ${
+                          active ? "border-yellow-400 bg-yellow-400 text-black" : "border-white/30"
                         }`}>
                           {active && "✓"}
                         </span>
@@ -179,21 +179,21 @@ export default function Home() {
                   })}
                 </div>
 
-                <div className="w-full flex flex-col gap-2">
+                <div className="w-full flex flex-col gap-3">
                   <button
                     onClick={() => start(false)}
                     disabled={preferences.streamingServices.length === 0}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-white text-black font-semibold text-sm transition-all hover:bg-white/90 disabled:opacity-25 disabled:cursor-not-allowed"
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     選択したサービスで始める
                     <ArrowRight className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => start(true)}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-white/40 hover:text-white/70 transition-colors text-sm"
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-white/20 text-white/60 hover:border-white/35 hover:text-white/80 transition-all text-sm"
                   >
                     <SkipForward className="w-4 h-4" />
-                    サービスに関わらず探す
+                    サービスに関わらず映画を探す
                   </button>
                 </div>
               </div>
