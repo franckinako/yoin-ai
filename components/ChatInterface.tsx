@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { MovieCard } from "./MovieCard";
 import { UserPreferences } from "@/lib/types";
 import { useAuthStore } from "@/lib/store/authStore";
@@ -194,7 +193,7 @@ export function ChatInterface({
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <ScrollArea className="flex-1 pr-2">
+      <div className="flex-1 overflow-y-auto pr-2 min-h-0">
         <div className="flex flex-col gap-4 py-4">
           <AnimatePresence initial={false}>
             {messages.map((msg, i) => {
@@ -273,7 +272,7 @@ export function ChatInterface({
 
           <div ref={bottomRef} />
         </div>
-      </ScrollArea>
+      </div>
 
       <div className="mt-4 flex gap-2">
         <Input
