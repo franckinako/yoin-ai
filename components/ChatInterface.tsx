@@ -61,9 +61,15 @@ export function ChatInterface({
 
   // Restore conversation messages when restoreConversationId is provided
   useEffect(() => {
-    if (!restoreConversationId || restoredRef.current) return;
-    restoredRef.current = true;
+    if (!restoreConversationId) {
+      restoredRef.current = false;
+      setMessages([GREETING]);
+      setActiveOptions(GREETING.options ?? []);
+      setConversationId(null);
+      return;
+    }
 
+    restoredRef.current = true;
     loadConversationMessages(restoreConversationId).then((rows) => {
       if (!rows.length) return;
       const restored: Message[] = rows.map((r) => ({
@@ -76,16 +82,6 @@ export function ChatInterface({
       const lastAssistant = [...restored].reverse().find((m) => m.role === "assistant");
       setActiveOptions(lastAssistant?.options ?? []);
     });
-  }, [restoreConversationId]);
-
-  // Reset when restoreConversationId clears (new conversation)
-  useEffect(() => {
-    if (!restoreConversationId) {
-      restoredRef.current = false;
-      setMessages([GREETING]);
-      setActiveOptions(GREETING.options ?? []);
-      setConversationId(null);
-    }
   }, [restoreConversationId]);
 
   useEffect(() => {
