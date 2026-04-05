@@ -37,16 +37,18 @@ export function AuthButton() {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex items-center gap-1.5 text-xs text-white/40">
+    <div className="flex items-center gap-1.5">
+      <div className="hidden sm:flex items-center gap-1 text-xs text-white/40">
         <User className="w-3.5 h-3.5" />
-        <span className="max-w-[120px] truncate">{user.email}</span>
+        <span className="max-w-[100px] truncate">{user.email}</span>
       </div>
       <button
         onClick={signOut}
-        className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-white/10 text-white/40 hover:border-white/25 hover:text-white/60 transition-all"
+        className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border border-white/10 text-white/40 hover:border-white/25 hover:text-white/60 transition-all"
+        title="ログアウト"
       >
         <LogOut className="w-3.5 h-3.5" />
+        <span className="sm:hidden text-xs">ログアウト</span>
       </button>
     </div>
   );

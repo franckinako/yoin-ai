@@ -8,6 +8,7 @@ import {
   getWatchProviders,
   getMovieDetails,
 } from "@/lib/tmdb";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 
 const client = new Anthropic();
 
@@ -105,21 +106,53 @@ async function executeTool(toolName: string, toolInput: Record<string, unknown>)
 
 const SYSTEM_PROMPT = `あなたは映画をこよなく愛するパーソナル映画コンシェルジュです。
 
+## 最重要ルール：必ず選択肢を提示する
+**すべてのレスポンスで options に選択肢を3〜6個必ず含める。**
+ユーザーが自由入力しなくても会話が進むよう設計すること。
+選択肢はユーザーの状況に応じて動的に変える。
+
+---
+
 ## 2つのモード
 
 ### ⚡ サクッとモード（ユーザーが「サクッと探したい」を選んだ場合）
-ヒアリングは最大2往復で完了し、即座に推薦する。
-1. 気分を1問聞く（options 4択）
-2. 上映時間を1問聞く（options 3択）
-3. すぐに映画を検索して3本推薦
+2往復で推薦まで完了する。
+
+**Q1: 今の気分は？（必須選択肢）**
+options: ["😂 笑いたい・元気になりたい", "😱 ドキドキ・ハラハラしたい", "😢 感動して泣きたい", "🤔 考えさせられる作品が好き", "😨 ホラー・スリラーが見たい", "😌 ゆったり癒されたい"]
+
+**Q2: 上映時間は？（必須選択肢）**
+options: ["⏱ 90分以内でサクッと", "🎬 90〜120分くらい", "🍿 2時間以上でもOK", "✨ 長さは気にしない"]
+
+→ 即映画検索して3本推薦
 
 ### 🎯 じっくりモード（ユーザーが「じっくり探したい」を選んだ場合）
-3〜4往復かけてユーザーの好みを深掘りしてから推薦する。
-1. 気分・感情を聞く
-2. 好きな映画・ジャンルを聞いて深掘り
-3. 上映時間を聞く（3択）
-4. 視聴環境・苦手なものを任意で確認
-5. 3〜5本を詳しい理由とともに推薦
+3〜4往復で深掘りしてから推薦する。
+
+**Q1: 今の気分は？**
+options: ["😂 笑いたい・元気になりたい", "😱 ドキドキ・ハラハラしたい", "😢 感動して泣きたい", "🤔 考えさせられる作品が好き", "😨 ホラー・スリラーが見たい", "😌 ゆったり癒されたい"]
+
+**Q2: 気分に応じた深掘り質問（選択肢で）**
+- 笑いたい → options: ["コメディ映画", "ロマコメ", "アニメ・ファミリー", "ブラックコメディ"]
+- ドキドキ → options: ["アクション・バトル", "サスペンス・謎解き", "SF・近未来", "犯罪・ノワール"]
+- 感動 → options: ["友情・青春", "家族の物語", "恋愛・ラブストーリー", "実話・伝記"]
+- 考えさせられる → options: ["哲学的・難解系", "社会派ドラマ", "ヒューマンドラマ", "ドキュメンタリー"]
+- ホラー → options: ["ガチ恐怖・ゴア", "サイコホラー", "モンスター系", "ホラーコメディ"]
+- 癒し → options: ["日常系・スローライフ", "自然・旅の映画", "音楽・アート系", "ほっこりドラマ"]
+
+**Q3: 好きな映画を教えて（選択肢 + 自由入力可）**
+options: ["特になし・おまかせ", "邦画が好き", "洋画が好き", "アニメ映画が好き", "有名作よりマイナー作が好き"]
+
+**Q4: 上映時間は？**
+options: ["⏱ 90分以内でサクッと", "🎬 90〜120分くらい", "🍿 2時間以上でもOK", "✨ 長さは気にしない"]
+
+→ 3〜5本を詳しい理由とともに推薦
+
+---
+
+## 推薦後の選択肢（必ず含める）
+推薦後は必ず以下のような選択肢を提示する：
+options: ["👍 ピッタリ！これにする", "⏱ もっと短い作品で", "🎭 別ジャンルも見たい", "🔍 似た映画をもっと見せて", "😕 どれもピンとこない"]
 
 ---
 
@@ -127,9 +160,8 @@ const SYSTEM_PROMPT = `あなたは映画をこよなく愛するパーソナル
 
 ### 会話スタイル
 - 友人のように親しみやすい口調
-- 一度に質問は1〜2個まで
-- 上映時間は**必ず3択**で聞く。自動的に仮定しないこと
-  - options: ["90分以内でサクッと", "90〜120分くらい", "2時間以上でもOK"]
+- 一度に質問は1つ
+- 選択肢はすべて簡潔に（10文字以内推奨）
 
 ### 映画推薦のステップ（厳守）
 1. 「探してみますね！」と一言添えてからツールを使う
@@ -141,32 +173,106 @@ const SYSTEM_PROMPT = `あなたは映画をこよなく愛するパーソナル
 ### 推薦理由（60〜80文字）
 会話で出た言葉を引用して書く。
 - NG：「アクションが好きな方に」
-- OK：「『インセプション』好きとのことで、同じく現実が揺らぐ緊張感がある作品です。90分とコンパクトなのもぴったり。」
+- OK：「『ドキドキしたい』とのことで、予測不能な展開が続くサスペンスです。90分とコンパクトなのもぴったり。」
 
 ## レスポンス形式（必ずJSON・コードブロックなし）
 
 【ヒアリング中】
-{"message":"質問","options":["A","B","C"],"recommendations":[]}
+{"message":"質問文","options":["A","B","C","D"],"recommendations":[]}
 
 【推薦時】
-{"message":"導入文","options":["もっと短い作品で","別ジャンルも見たい","似た映画をもっと"],"recommendations":[{"movie_id":12345,"title":"タイトル","reason":"理由60〜80文字","streaming_services":["Netflix"],"runtime_minutes":120,"match_score":85}]}
-
-推薦後は「気になった作品はありますか？」と続け、追加要望に柔軟に対応する。
+{"message":"導入文","options":["👍 ピッタリ！これにする","⏱ もっと短い作品で","🎭 別ジャンルも見たい","🔍 似た映画をもっと見せて","😕 どれもピンとこない"],"recommendations":[{"movie_id":12345,"title":"タイトル","reason":"理由60〜80文字","streaming_services":["Netflix"],"runtime_minutes":120,"match_score":85}]}
 
 ## ハルシネーション防止（厳守）
-- 「〇〇サービスには△△な映画が存在しない」と断言しない。ツールの検索結果はあくまで一部であり、実際には存在する可能性がある
-- 検索結果が0件・少数だった場合は「私の検索では見つかりませんでした」と伝え、条件を変えて再検索を試みる
+- 「〇〇サービスには△△な映画が存在しない」と断言しない
+- 検索結果が0件・少数だった場合は条件を変えて再検索
 - 再検索の戦略：評価基準を下げる→ジャンルを広げる→runtime上限を緩める
 - 何度試しても見つからない場合のみ「現時点では見つかりませんでした」と伝え、代替案を提案する`;
+
+async function buildUserHistoryContext(supabase: Awaited<ReturnType<typeof createServerClient>>): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return "";
+
+  // 保存した映画・過去の推薦映画・ユーザーメッセージを並列取得
+  const [savedResult, convResult] = await Promise.all([
+    supabase
+      .from("saved_movies")
+      .select("title")
+      .eq("user_id", user.id)
+      .order("saved_at", { ascending: false })
+      .limit(20),
+    supabase
+      .from("conversations")
+      .select("id")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(15),
+  ]);
+
+  const savedTitles = (savedResult.data ?? []).map((m) => m.title);
+  const convIds = (convResult.data ?? []).map((c) => c.id);
+
+  let pastRecommendedTitles: string[] = [];
+  let userMoodKeywords: string[] = [];
+
+  if (convIds.length > 0) {
+    const [msgRecs, msgUser] = await Promise.all([
+      supabase
+        .from("messages")
+        .select("recommendations")
+        .in("conversation_id", convIds)
+        .eq("role", "assistant")
+        .not("recommendations", "is", null),
+      supabase
+        .from("messages")
+        .select("content")
+        .in("conversation_id", convIds)
+        .eq("role", "user")
+        .limit(60),
+    ]);
+
+    // 過去に推薦されたタイトルを収集
+    for (const msg of msgRecs.data ?? []) {
+      const recs = msg.recommendations as Array<{ title?: string }> | null;
+      if (recs) pastRecommendedTitles.push(...recs.map((r) => r.title).filter(Boolean) as string[]);
+    }
+    pastRecommendedTitles = [...new Set(pastRecommendedTitles)];
+
+    // ユーザーメッセージから気分・ジャンルキーワードを抽出
+    const allUserText = (msgUser.data ?? []).map((m) => m.content).join(" ");
+    const moodKeywords = ["笑いたい", "元気になりたい", "ドキドキ", "ハラハラ", "感動", "泣きたい", "ホラー", "スリラー", "癒し", "ゆったり", "考えさせられる", "アクション", "コメディ", "恋愛", "ラブ", "SF", "ミステリー", "サスペンス", "青春", "家族", "友情"];
+    userMoodKeywords = moodKeywords.filter((k) => allUserText.includes(k));
+  }
+
+  if (savedTitles.length === 0 && pastRecommendedTitles.length === 0) return "";
+
+  const lines: string[] = ["\n## このユーザーの過去の履歴（必ず参照すること）"];
+
+  if (savedTitles.length > 0) {
+    lines.push(`\n### 保存済み映画（ユーザーが気に入った作品）\n${savedTitles.slice(0, 10).join("、")}\n→ これらと傾向が似た作品を優先的に推薦してください。`);
+  }
+
+  if (pastRecommendedTitles.length > 0) {
+    lines.push(`\n### 過去に提案済みの映画（重複禁止）\n${pastRecommendedTitles.slice(0, 30).join("、")}\n→ これらはすでに提案済みです。必ず別の作品を推薦してください。`);
+  }
+
+  if (userMoodKeywords.length > 0) {
+    lines.push(`\n### 過去の嗜好傾向\n「${userMoodKeywords.join("」「")}」系のコンテンツへの関心が見られます。今回の提案にも参考にしてください。`);
+  }
+
+  return lines.join("\n");
+}
 
 export async function POST(req: NextRequest) {
   const { messages, preferences } = await req.json();
 
-  const userContext = `
-ユーザーの現在の設定:
+  const supabase = await createServerClient();
+  const historyContext = await buildUserHistoryContext(supabase);
+
+  const userContext = `ユーザーの現在の設定:
 - 契約中のサービス: ${preferences.streamingServices.join(", ") || "指定なし"}
 ※ 視聴可能時間は会話の中でユーザーに確認してください（上映時間の希望は自動設定しないこと）
-`;
+${historyContext}`;
 
   const apiMessages: Anthropic.MessageParam[] = [
     { role: "user", content: userContext },

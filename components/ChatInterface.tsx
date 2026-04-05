@@ -235,13 +235,13 @@ export function ChatInterface({
                           initial={{ opacity: 0, y: 6 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: 0.15 }}
-                          className="ml-11 flex flex-wrap gap-2"
+                          className="ml-0 sm:ml-11 grid grid-cols-2 sm:flex sm:flex-wrap gap-2"
                         >
                           {activeOptions.map((opt) => (
                             <button
                               key={opt}
                               onClick={() => sendMessage(opt)}
-                              className="text-sm px-4 py-2 rounded-full border border-yellow-400/40 text-yellow-400/80 hover:border-yellow-400 hover:text-yellow-400 hover:bg-yellow-400/10 transition-all"
+                              className="text-xs sm:text-sm px-3 py-2 rounded-xl sm:rounded-full border border-yellow-400/40 text-yellow-400/80 hover:border-yellow-400 hover:text-yellow-400 hover:bg-yellow-400/10 transition-all text-left leading-snug"
                             >
                               {opt}
                             </button>

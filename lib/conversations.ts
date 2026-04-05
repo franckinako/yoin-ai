@@ -21,9 +21,11 @@ export interface SavedMovie {
 
 export async function createConversation(title: string): Promise<string | null> {
   const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
   const { data, error } = await supabase
     .from("conversations")
-    .insert({ title })
+    .insert({ title, user_id: user.id })
     .select("id")
     .single();
   if (error) return null;
@@ -83,8 +85,11 @@ export async function saveMovie(movie: {
   match_score?: number;
 }) {
   const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
   const { error } = await supabase.from("saved_movies").upsert(
     {
+      user_id: user.id,
       movie_id: movie.movie_id,
       title: movie.title,
       poster_path: movie.poster_path ?? null,
