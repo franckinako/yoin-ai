@@ -121,10 +121,27 @@
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
+  html, body {
+    background-color: #0a0a0f;
+    @apply text-foreground;
+    font-family: var(--font-noto-sans-jp), sans-serif;
   }
   html {
     @apply font-sans;
   }
+}
+
+/* Cinema dark scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 197, 24, 0.4);
 }

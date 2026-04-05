@@ -1,65 +1,176 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import { ChatInterface } from "@/components/ChatInterface";
+import { AuthButton } from "@/components/AuthButton";
+import { ConversationSidebar } from "@/components/ConversationSidebar";
+import { UserPreferences } from "@/lib/types";
+import { STREAMING_SERVICE_NAMES } from "@/lib/streaming-providers";
+import { ArrowRight, SkipForward, Bookmark } from "lucide-react";
+
+const DEFAULT_PREFERENCES: UserPreferences = {
+  availableMinutes: 120,
+  streamingServices: [],
+  genres: [],
+  mood: "",
+  favoriteMovies: [],
+  language: "ja",
+};
 
 export default function Home() {
+  const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
+  const [started, setStarted] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [restoreId, setRestoreId] = useState<string | null>(null);
+
+  function toggleService(service: string) {
+    const current = preferences.streamingServices;
+    setPreferences({
+      ...preferences,
+      streamingServices: current.includes(service)
+        ? current.filter((s) => s !== service)
+        : [...current, service],
+    });
+  }
+
+  function start(ignoreServices = false) {
+    if (ignoreServices) {
+      setPreferences({ ...preferences, streamingServices: [] });
+    }
+    setRestoreId(null);
+    setConversationId(null);
+    setStarted(true);
+  }
+
+  function handleSelectConversation(id: string) {
+    setRestoreId(id);
+    setConversationId(id);
+    setStarted(true);
+  }
+
+  function handleNewConversation() {
+    setRestoreId(null);
+    setConversationId(null);
+    setStarted(false);
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="min-h-screen bg-[#0a0a0f] text-white flex flex-col">
+      {/* Sidebar */}
+      <ConversationSidebar
+        currentConversationId={conversationId}
+        onSelect={handleSelectConversation}
+        onNew={handleNewConversation}
+      />
+
+      {/* Header */}
+      <header className="border-b border-white/10 px-6 py-4 flex items-center gap-3 bg-[#0a0a0f]/80 backdrop-blur-sm sticky top-0 z-20">
+        <span className="text-2xl">🎬</span>
+        <div>
+          <h1 className="font-bold text-lg text-white leading-none" style={{ fontFamily: "serif" }}>
+            YO-IN AI
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+          <p className="text-xs text-white/40">AI映画推薦エージェント</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        <div className="ml-auto flex items-center gap-3">
+          <Link
+            href="/saved"
+            className="flex items-center gap-1.5 text-xs text-white/40 hover:text-yellow-400/70 transition-colors"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+            <Bookmark className="w-4 h-4" />
+            保存済み
+          </Link>
+          {started && (
+            <button
+              onClick={() => setStarted(false)}
+              className="text-xs text-white/30 hover:text-white/60 transition-colors"
+            >
+              サービス変更
+            </button>
+          )}
+          <AuthButton />
+        </div>
+      </header>
+
+      <AnimatePresence mode="wait">
+        {!started ? (
+          /* ── サービス選択画面 ── */
+          <motion.div
+            key="setup"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.35 }}
+            className="flex-1 flex flex-col items-center justify-center px-6 py-12"
+          >
+            <div className="w-full max-w-md flex flex-col items-center gap-8">
+              <div className="text-center">
+                <p className="text-yellow-400 text-sm font-medium tracking-widest uppercase mb-2">Step 1</p>
+                <h2 className="text-2xl font-bold text-white mb-2">契約中のサービスを選んでください</h2>
+                <p className="text-sm text-white/40">視聴できる映画を優先して推薦します</p>
+              </div>
+
+              <div className="w-full grid grid-cols-2 gap-2">
+                {STREAMING_SERVICE_NAMES.map((service) => {
+                  const active = preferences.streamingServices.includes(service);
+                  return (
+                    <button
+                      key={service}
+                      onClick={() => toggleService(service)}
+                      className={`px-4 py-3 rounded-xl border text-sm text-left transition-all ${
+                        active
+                          ? "border-yellow-400/70 bg-yellow-400/15 text-white font-medium"
+                          : "border-white/15 text-white/50 hover:border-white/30 hover:text-white/70"
+                      }`}
+                    >
+                      {active && <span className="text-yellow-400 mr-1.5">✓</span>}
+                      {service}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="w-full flex flex-col gap-3">
+                <button
+                  onClick={() => start(false)}
+                  disabled={preferences.streamingServices.length === 0}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  選択したサービスで始める
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => start(true)}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-white/15 text-white/50 hover:border-white/30 hover:text-white/70 transition-all text-sm"
+                >
+                  <SkipForward className="w-4 h-4" />
+                  サービスに関わらず映画を探す
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          /* ── チャット画面 ── */
+          <motion.div
+            key="chat"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35 }}
+            className="flex-1 flex flex-col min-h-0 px-6 py-4 max-w-3xl mx-auto w-full"
+            style={{ height: "calc(100vh - 72px)" }}
+          >
+            <ChatInterface
+              preferences={preferences}
+              restoreConversationId={restoreId}
+              onConversationCreated={setConversationId}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </main>
   );
 }
