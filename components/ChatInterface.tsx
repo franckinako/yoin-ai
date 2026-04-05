@@ -40,7 +40,7 @@ interface ChatInterfaceProps {
 
 const GREETING: Message = {
   role: "assistant",
-  content: "こんにちは！今のあなたにぴったりな映画をお届けするYO-IN AIです🎬\nどんな気分の夜も、きっとお気に入りの1本が見つかります。\nまずは探し方を教えてください。",
+  content: "こんにちは！今のあなたにぴったりな映画をお届けするYO-IN AIです🎬\nどんな気分のときも、きっとお気に入りの1本が見つかります。\nまずは探し方を教えてください。",
   options: ["⚡ サクッと探したい（2〜3問で即推薦）", "🎯 じっくり探したい（3〜4問で外さない映画探しを）"],
   recommendations: [],
 };
