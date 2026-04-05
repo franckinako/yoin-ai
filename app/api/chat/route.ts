@@ -33,17 +33,13 @@ async function executeTool(toolName: string, toolInput: Record<string, unknown>)
         with_genres: (toolInput.genre_ids as number[])?.join(","),
         "with_runtime.lte": toolInput.max_runtime_minutes as number | undefined,
         "vote_average.gte": (toolInput.min_rating as number) ?? 5.0,
-        pages: 2,
+        pages: 1,
       });
-      // レートリミット対策: 5件ずつバッチで詳細取得
-      const top20 = movies.slice(0, 20);
-      const detailed: Awaited<ReturnType<typeof getMovieDetails>>[] = [];
-      for (let i = 0; i < top20.length; i += 5) {
-        const batch = await Promise.all(
-          top20.slice(i, i + 5).map((m) => getMovieDetails(m.id).catch(() => m))
-        );
-        detailed.push(...batch);
-      }
+      // 上位10件を一括並列で詳細取得（速度優先）
+      const top10 = movies.slice(0, 10);
+      const detailed = await Promise.all(
+        top10.map((m) => getMovieDetails(m.id).catch(() => m))
+      );
       return {
         total_found: movies.length,
         movies: detailed.map((m) => ({
