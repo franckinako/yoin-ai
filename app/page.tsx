@@ -10,6 +10,7 @@ import { useAuthStore } from "@/lib/store/authStore";
 import { UserPreferences } from "@/lib/types";
 import { STREAMING_SERVICE_NAMES } from "@/lib/streaming-providers";
 import { ArrowRight, SkipForward, Bookmark, Tv2, Menu } from "lucide-react";
+import Image from "next/image";
 
 const DEFAULT_PREFERENCES: UserPreferences = {
   availableMinutes: 120,
@@ -24,6 +25,7 @@ const STORAGE_KEY = "yoin-ai:services";
 
 export default function Home() {
   const user = useAuthStore((s) => s.user);
+  const [hydrated, setHydrated] = useState(false);
   const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
   const [started, setStarted] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -37,9 +39,10 @@ export default function Home() {
       if (saved) {
         const services: string[] = JSON.parse(saved);
         setPreferences((p) => ({ ...p, streamingServices: services }));
-        setStarted(true);
+        // 毎回サービス選択画面を表示する（前回の選択を初期値として表示）
       }
     } catch {}
+    setHydrated(true);
   }, []);
 
   useEffect(() => {
@@ -81,6 +84,11 @@ export default function Home() {
     setStarted(false);
   }
 
+  // ローカルストレージ読み込み前はスケルトン表示（白フラッシュ防止）
+  if (!hydrated) {
+    return <div className="h-[100dvh] bg-[#0a0a0f]" />;
+  }
+
   return (
     <div className="h-[100dvh] bg-[#0a0a0f] text-white flex overflow-hidden">
       {/* Sidebar */}
@@ -106,7 +114,7 @@ export default function Home() {
             </button>
           )}
 
-          <span className="text-base">🎬</span>
+          <Image src="/yoin-ai-icon.png" alt="YO-IN AI" width={22} height={22} className="rounded-sm flex-shrink-0" />
           <h1 className="font-bold text-sm text-white leading-none whitespace-nowrap" style={{ fontFamily: "serif" }}>
             YO-IN AI
           </h1>
@@ -164,12 +172,12 @@ export default function Home() {
                         onClick={() => toggleService(service)}
                         className={`px-4 py-3 rounded-xl border text-sm text-left transition-all flex items-center gap-2 ${
                           active
-                            ? "border-yellow-400/70 bg-yellow-400/15 text-white font-medium"
+                            ? "border-emerald-400/70 bg-emerald-400/15 text-white font-medium"
                             : "border-white/15 text-white/50 hover:border-white/30 hover:text-white/70"
                         }`}
                       >
                         <span className={`w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center text-xs ${
-                          active ? "border-yellow-400 bg-yellow-400 text-black" : "border-white/30"
+                          active ? "border-emerald-400 bg-emerald-400 text-black" : "border-white/30"
                         }`}>
                           {active && "✓"}
                         </span>
@@ -183,7 +191,7 @@ export default function Home() {
                   <button
                     onClick={() => start(false)}
                     disabled={preferences.streamingServices.length === 0}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-black font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     選択したサービスで始める
                     <ArrowRight className="w-4 h-4" />
@@ -216,6 +224,23 @@ export default function Home() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Footer */}
+        <footer className="flex-shrink-0 border-t border-white/5 px-4 py-2 flex items-center justify-center gap-3 text-[10px] text-white/20">
+          <span>
+            映画データ提供:{" "}
+            <a
+              href="https://www.themoviedb.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-white/40 transition-colors"
+            >
+              TMDB
+            </a>
+          </span>
+          <span className="text-white/10">|</span>
+          <span>© 2026 YO-IN AI. All rights reserved.</span>
+        </footer>
       </div>
     </div>
   );

@@ -10,7 +10,10 @@ function getHeaders() {
 }
 
 async function safeFetch(url: string): Promise<unknown> {
-  const res = await fetch(url, { headers: getHeaders() });
+  const res = await fetch(url, {
+    headers: getHeaders(),
+    next: { revalidate: 3600 }, // 1時間キャッシュ
+  });
   if (!res.ok) throw new Error(`TMDB API error: ${res.status} ${res.statusText}`);
   return res.json();
 }
@@ -77,11 +80,16 @@ export async function getSimilarMovies(movieId: number): Promise<Movie[]> {
   return data.results ?? [];
 }
 
-export async function getWatchProviders(movieId: number): Promise<WatchProvider[]> {
+export async function getWatchProviders(
+  movieId: number
+): Promise<{ providers: WatchProvider[]; link: string }> {
   const data = await safeFetch(`${TMDB_BASE}/movie/${movieId}/watch/providers`) as {
-    results?: { JP?: { flatrate?: WatchProvider[] } };
+    results?: { JP?: { flatrate?: WatchProvider[]; link?: string } };
   };
-  return data.results?.JP?.flatrate ?? [];
+  return {
+    providers: data.results?.JP?.flatrate ?? [],
+    link: data.results?.JP?.link ?? "",
+  };
 }
 
 export async function getGenres(): Promise<{ id: number; name: string }[]> {

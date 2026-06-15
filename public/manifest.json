@@ -1,0 +1,25 @@
+{
+  "name": "YO-IN AI - 映画推薦AIエージェント",
+  "short_name": "YO-IN AI",
+  "description": "AIが今の気分や好みをヒアリングし、あなたにぴったりな映画を提案する映画推薦AIエージェント。",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#0a0a0f",
+  "orientation": "portrait",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

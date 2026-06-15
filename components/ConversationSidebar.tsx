@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { SquarePen, MessageSquare, Trash2, X } from "lucide-react";
+import Image from "next/image";
 import { listConversations, deleteConversation, ConversationSummary } from "@/lib/conversations";
 import { useAuthStore } from "@/lib/store/authStore";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
@@ -26,7 +27,7 @@ export function ConversationSidebar({
 
   useEffect(() => {
     if (!user) { setConversations([]); return; }
-    listConversations().then(setConversations);
+    listConversations().then(setConversations).catch(() => setConversations([]));
   }, [user, currentConversationId]);
 
   async function handleDelete(e: React.MouseEvent, id: string) {
@@ -96,7 +97,10 @@ export function ConversationSidebar({
           />
           <aside className="md:hidden fixed left-0 top-0 bottom-0 w-64 z-50 bg-[#0d0d14] border-r border-white/10 flex flex-col">
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-              <span className="text-sm font-bold text-white">🎬 YO-IN AI</span>
+              <span className="flex items-center gap-1.5 font-bold text-sm text-white">
+                <Image src="/yoin-ai-icon.png" alt="YO-IN AI" width={18} height={18} className="rounded-sm" />
+                YO-IN AI
+              </span>
               <button onClick={onMobileClose} className="p-1 text-white/40 hover:text-white transition-colors">
                 <X className="w-4 h-4" />
               </button>

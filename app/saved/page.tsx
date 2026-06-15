@@ -16,10 +16,12 @@ export default function SavedPage() {
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
-    getSavedMovies().then((data) => {
-      setMovies(data);
-      setLoading(false);
-    });
+    getSavedMovies()
+      .catch(() => [])
+      .then((data) => {
+        setMovies(data);
+        setLoading(false);
+      });
   }, [user]);
 
   async function handleRemove(movieId: number) {
@@ -36,7 +38,7 @@ export default function SavedPage() {
           戻る
         </Link>
         <div className="flex items-center gap-2 ml-2">
-          <Bookmark className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+          <Bookmark className="w-5 h-5 text-emerald-400 fill-emerald-400" />
           <h1 className="font-bold text-white">保存した映画</h1>
         </div>
         <span className="ml-auto text-xs text-white/30">{movies.length}本</span>
@@ -53,7 +55,7 @@ export default function SavedPage() {
           <div className="text-center py-20 text-white/40">
             <Bookmark className="w-12 h-12 mx-auto mb-4 opacity-30" />
             <p>保存した映画はありません</p>
-            <Link href="/" className="mt-4 inline-block text-sm text-yellow-400/70 hover:text-yellow-400 transition-colors">
+            <Link href="/" className="mt-4 inline-block text-sm text-emerald-400/70 hover:text-emerald-400 transition-colors">
               映画を探す →
             </Link>
           </div>
@@ -69,7 +71,7 @@ export default function SavedPage() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: i * 0.05 }}
-                  className="group flex gap-4 rounded-xl border border-white/10 bg-white/5 p-4 hover:border-yellow-400/30 transition-all"
+                  className="group flex gap-4 rounded-xl border border-white/10 bg-white/5 p-4 hover:border-emerald-400/30 transition-all"
                 >
                   {/* Poster */}
                   <div className="relative flex-shrink-0 w-20 h-[120px] rounded-lg overflow-hidden bg-white/10">
@@ -106,7 +108,7 @@ export default function SavedPage() {
                         </span>
                       )}
                       {movie.match_score != null && (
-                        <span className="text-yellow-400/70">マッチ度 {movie.match_score}%</span>
+                        <span className="text-emerald-400/70">マッチ度 {movie.match_score}%</span>
                       )}
                     </div>
 

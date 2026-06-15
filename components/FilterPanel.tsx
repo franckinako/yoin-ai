@@ -36,11 +36,11 @@ export function FilterPanel({ preferences, onChange }: FilterPanelProps) {
               onClick={() => toggleService(service)}
               className={`text-sm px-3 py-2 rounded-lg border text-left transition-all ${
                 active
-                  ? "border-yellow-400/60 bg-yellow-400/10 text-white"
+                  ? "border-emerald-400/60 bg-emerald-400/10 text-white"
                   : "border-white/10 text-white/35 hover:border-white/25 hover:text-white/60"
               }`}
             >
-              {active && <span className="text-yellow-400 mr-1.5">✓</span>}
+              {active && <span className="text-emerald-400 mr-1.5">✓</span>}
               {service}
             </button>
           );

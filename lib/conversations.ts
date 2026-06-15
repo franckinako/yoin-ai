@@ -106,7 +106,14 @@ export async function saveMovie(movie: {
 
 export async function unsaveMovie(movieId: number) {
   const supabase = createClient();
-  await supabase.from("saved_movies").delete().eq("movie_id", movieId);
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
+  const { error } = await supabase
+    .from("saved_movies")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("movie_id", movieId);
+  return !error;
 }
 
 export async function getSavedMovies(): Promise<SavedMovie[]> {

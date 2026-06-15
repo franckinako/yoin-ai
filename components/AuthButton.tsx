@@ -1,21 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuthStore } from "@/lib/store/authStore";
-import { LogIn, LogOut, User } from "lucide-react";
+import { LogIn, LogOut } from "lucide-react";
+import { AuthModal } from "./AuthModal";
 
 export function AuthButton() {
   const user = useAuthStore((s) => s.user);
-
-  async function signInWithGoogle() {
-    const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/api/auth/callback`,
-      },
-    });
-  }
+  const [showModal, setShowModal] = useState(false);
 
   async function signOut() {
     const supabase = createClient();
@@ -26,20 +19,22 @@ export function AuthButton() {
 
   if (!user) {
     return (
-      <button
-        onClick={signInWithGoogle}
-        className="flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg border border-white/15 text-white/60 hover:border-yellow-400/50 hover:text-white transition-all"
-      >
-        <LogIn className="w-4 h-4" />
-        ログイン
-      </button>
+      <>
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-white/15 text-white/60 hover:border-emerald-400/50 hover:text-white transition-all"
+        >
+          <LogIn className="w-4 h-4" />
+          <span>ログイン</span>
+        </button>
+        {showModal && <AuthModal onClose={() => setShowModal(false)} />}
+      </>
     );
   }
 
   return (
     <div className="flex items-center gap-1.5">
       <div className="hidden sm:flex items-center gap-1 text-xs text-white/40">
-        <User className="w-3.5 h-3.5" />
         <span className="max-w-[100px] truncate">{user.email}</span>
       </div>
       <button
